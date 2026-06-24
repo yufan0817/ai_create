@@ -1,0 +1,13 @@
+.env
+.env.local
+# 依赖文件夹
+node_modules/
+# 打包产物
+.next/
+dist/
+build/
+# 日志、缓存
+*.log
+.npm
+.idea/
+.vscode/
