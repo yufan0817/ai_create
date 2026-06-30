@@ -8,6 +8,7 @@ import { characters, getCharacterPrompt, Character } from '../data/characters';
 interface Message {
   id: string;
   content: string;
+  displayedContent: string;
   isUser: boolean;
 }
 
@@ -24,6 +25,43 @@ export default function ChatPage() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  useEffect(() => {
+    const typingMessages = messages.filter(m => !m.isUser && m.content !== m.displayedContent);
+    if (typingMessages.length === 0) return;
+
+    const message = typingMessages[0];
+    const index = messages.findIndex(m => m.id === message.id);
+    
+    const getTypingSpeed = (char: string) => {
+      if (char === '，' || char === '。' || char === '！' || char === '？') return 150;
+      if (char === '\n') return 200;
+      if (char === '、') return 80;
+      return Math.random() * 25 + 15;
+    };
+
+    let currentIndex = message.displayedContent.length;
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    const typeNextChar = () => {
+      if (currentIndex < message.content.length) {
+        const char = message.content[currentIndex];
+        const speed = getTypingSpeed(char);
+        
+        const newDisplayed = message.content.slice(0, currentIndex + 1);
+        setMessages(prev => prev.map((m, i) => 
+          i === index ? { ...m, displayedContent: newDisplayed } : m
+        ));
+        
+        currentIndex++;
+        timeoutId = setTimeout(typeNextChar, speed);
+      }
+    };
+
+    timeoutId = setTimeout(typeNextChar, 50);
+
+    return () => clearTimeout(timeoutId);
+  }, [messages]);
+
   const handleSelectCharacter = (characterId: string) => {
     setSelectedCharacter(characterId);
     setMessages([]);
@@ -35,6 +73,7 @@ export default function ChatPage() {
     const userMessage: Message = {
       id: Date.now().toString(),
       content: inputValue,
+      displayedContent: inputValue,
       isUser: true
     };
 
@@ -70,6 +109,7 @@ export default function ChatPage() {
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: aiContent,
+        displayedContent: '',
         isUser: false
       };
 
@@ -79,6 +119,7 @@ export default function ChatPage() {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: '网络异常，请稍后重试',
+        displayedContent: '',
         isUser: false
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -95,29 +136,43 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="min-h-screen relative pt-24 pb-20 px-6 bg-gradient-palace">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8 }}
+      className="min-h-screen relative pt-24 pb-20 px-6 bg-gradient-palace"
+    >
       <div className="bg-cloud-texture" />
+      <div className="paper-texture fixed inset-0 pointer-events-none" />
       <div className="bg-gold-glow" />
       
-      <div className="absolute top-20 left-0 right-0 h-32 stage-curtain opacity-50" />
+      <div className="absolute top-20 left-0 right-0 h-32 stage-curtain opacity-40" />
       
-      <div className="absolute top-24 left-8 opacity-30">
-        <div className="relative">
+      <div className="absolute top-24 left-8 opacity-25">
+        <motion.div
+          animate={{ y: [0, -5, 0] }}
+          transition={{ duration: 3, repeat: Infinity }}
+          className="relative"
+        >
           <div className="w-4 h-8 bg-palace-red-dark rounded-full mx-auto" />
           <div className="w-12 h-16 bg-gradient-to-b from-red-500 to-red-700 rounded-lg mt-2 lantern-glow" />
           <div className="w-14 h-2 bg-palace-red-dark rounded-full mx-auto -mt-1" />
-        </div>
+        </motion.div>
       </div>
       
-      <div className="absolute top-24 right-8 opacity-30">
-        <div className="relative">
+      <div className="absolute top-24 right-8 opacity-25">
+        <motion.div
+          animate={{ y: [0, -5, 0] }}
+          transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
+          className="relative"
+        >
           <div className="w-4 h-8 bg-palace-red-dark rounded-full mx-auto" />
           <div className="w-12 h-16 bg-gradient-to-b from-red-500 to-red-700 rounded-lg mt-2 lantern-glow" />
           <div className="w-14 h-2 bg-palace-red-dark rounded-full mx-auto -mt-1" />
-        </div>
+        </motion.div>
       </div>
 
-      <div className="absolute bottom-40 left-1/2 transform -translate-x-1/2 opacity-10">
+      <div className="absolute bottom-40 left-1/2 transform -translate-x-1/2 opacity-8">
         <svg viewBox="0 0 400 100" className="w-96 h-24">
           <path d="M0 100 L50 60 L80 70 L120 50 L150 65 L200 40 L250 65 L280 50 L320 70 L350 60 L400 100 Z" fill="#8B1E1E" />
           <rect x="180" y="20" width="40" height="60" fill="#A52A2A" />
@@ -141,12 +196,12 @@ export default function ChatPage() {
               >
                 <div className="inline-flex items-center gap-3 mb-6">
                   <MessageCircle className="w-8 h-8 text-gold" />
-                  <h1 className="text-4xl md:text-5xl font-kai font-bold text-gradient-gold tracking-wide">
+                  <h1 className="text-4xl md:text-5xl font-serif-title text-gradient-gold">
                     角色体验
                   </h1>
                   <MessageCircle className="w-8 h-8 text-gold" />
                 </div>
-                <p className="text-rice-white/70 font-song text-lg leading-relaxed">
+                <p className="text-rice-white/70 font-sans-text text-lg leading-relaxed">
                   与经典戏曲人物对话，感受历史魅力
                 </p>
               </motion.div>
@@ -158,22 +213,22 @@ export default function ChatPage() {
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     onClick={() => handleSelectCharacter(character.id)}
-                    className="group card-traditional rounded-lg overflow-hidden"
+                    className="group glass-card-gold overflow-hidden"
                     whileHover={{ y: -4 }}
                   >
                     <div className="aspect-square relative flex items-center justify-center bg-gradient-to-br from-palace-red/30 to-palace-red-dark/30">
-                      <div className="absolute inset-0 border-b-2 border-gold/30" />
+                      <div className="absolute inset-0 border-b border-gold/30" />
                       <div
-                        className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-kai font-bold transition-transform group-hover:scale-110 backdrop-blur-sm border-2 border-gold/30"
+                        className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-serif-title transition-transform group-hover:scale-110 backdrop-blur-sm border-2 border-gold/30"
                         style={{ backgroundColor: `${character.color}20`, color: character.color }}
                       >
                         {character.name[0]}
                       </div>
                       <div className="absolute top-2 right-2 w-3 h-3 rounded-full bg-gold/50" />
                     </div>
-                    <div className="p-4 text-center bg-white/[0.05]">
-                      <h3 className="font-kai font-bold text-gold tracking-wide text-sm">{character.name}</h3>
-                      <p className="text-xs text-rice-white/60 font-song mt-1">{character.title}</p>
+                    <div className="p-4 text-center">
+                      <h3 className="font-serif-title text-gold text-sm">{character.name}</h3>
+                      <p className="text-xs text-rice-white/60 font-sans-text mt-1">{character.title}</p>
                     </div>
                   </motion.button>
                 ))}
@@ -196,25 +251,25 @@ export default function ChatPage() {
                 className="flex items-center text-rice-white/70 hover:text-gold transition-colors"
               >
                 <ArrowLeft className="w-5 h-5 mr-2" />
-                <span className="font-song">返回选择</span>
+                <span className="font-sans-text">返回选择</span>
               </motion.button>
 
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="card-traditional rounded-lg overflow-hidden"
+                className="glass-card-gold overflow-hidden"
               >
                 <div className="scroll-header">
                   <div className="flex items-center justify-center gap-4">
                     <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center text-lg font-kai font-bold border border-gold/50"
+                      className="w-10 h-10 rounded-full flex items-center justify-center text-lg font-serif-title border border-gold/50"
                       style={{ backgroundColor: `${currentCharacter?.color}20`, color: currentCharacter?.color }}
                     >
                       {currentCharacter?.name[0]}
                     </div>
                     <div className="text-center">
-                      <h3 className="font-kai font-bold text-lg">{currentCharacter?.name}</h3>
-                      <p className="text-xs text-rice-white/60 font-song">{currentCharacter?.title}</p>
+                      <h3 className="font-serif-title text-lg">{currentCharacter?.name}</h3>
+                      <p className="text-xs text-rice-white/60 font-sans-text">{currentCharacter?.title}</p>
                     </div>
                     <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
                   </div>
@@ -230,8 +285,8 @@ export default function ChatPage() {
                           className="flex flex-col items-center justify-center h-full text-gray-400"
                         >
                           <MessageCircle className="w-16 h-16 mb-4 opacity-30" />
-                          <p className="font-song">开始与{currentCharacter?.name}对话</p>
-                          <p className="font-song text-sm mt-2">问问他关于京剧的故事</p>
+                          <p className="font-sans-text">开始与{currentCharacter?.name}对话</p>
+                          <p className="font-sans-text text-sm mt-2">问问他关于京剧的故事</p>
                         </motion.div>
                       )}
 
@@ -246,11 +301,14 @@ export default function ChatPage() {
                             className={`max-w-[70%] rounded-lg p-4 ${
                               message.isUser
                                 ? 'bg-palace-red/30 border border-palace-red/50'
-                                : 'bg-rice-yellow/80 border border-gold/30'
+                                : 'bg-rice-yellow/90 border border-gold/30'
                             }`}
                           >
-                            <p className={`font-song ${message.isUser ? 'text-rice-white' : 'text-gray-800'}`}>
-                              {message.content}
+                            <p className={`font-sans-text ${message.isUser ? 'text-rice-white' : 'text-gray-800'}`}>
+                              {message.displayedContent}
+                              {!message.isUser && message.content !== message.displayedContent && (
+                                <span className="typing-cursor" />
+                              )}
                             </p>
                           </div>
                         </motion.div>
@@ -258,27 +316,45 @@ export default function ChatPage() {
 
                       {isTyping && (
                         <motion.div
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
                           className="flex justify-start"
                         >
-                          <div className="bg-rice-yellow/80 rounded-lg p-4 border border-gold/30">
-                            <div className="flex space-x-1">
-                              <motion.span
-                                className="w-2 h-2 rounded-full bg-palace-red"
-                                animate={{ opacity: [0.5, 1, 0.5] }}
-                                transition={{ duration: 1, repeat: Infinity }}
-                              />
-                              <motion.span
-                                className="w-2 h-2 rounded-full bg-palace-red"
-                                animate={{ opacity: [0.5, 1, 0.5] }}
-                                transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
-                              />
-                              <motion.span
-                                className="w-2 h-2 rounded-full bg-palace-red"
-                                animate={{ opacity: [0.5, 1, 0.5] }}
-                                transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
-                              />
+                          <div className="bg-rice-yellow/90 rounded-lg p-4 border border-gold/30 shadow-lg">
+                            <div className="flex items-center space-x-2">
+                              <motion.div
+                                className="w-8 h-8 rounded-full bg-gradient-to-br from-palace-red/10 to-palace-red/5 flex items-center justify-center border border-palace-red/20"
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                              >
+                                <motion.div
+                                  className="w-3 h-3 rounded-full bg-palace-red/60"
+                                  animate={{ scale: [0.8, 1.2, 0.8] }}
+                                  transition={{ duration: 1.5, repeat: Infinity }}
+                                />
+                              </motion.div>
+                              <div className="flex space-x-1.5">
+                                {[0, 1, 2].map((i) => (
+                                  <motion.span
+                                    key={i}
+                                    className="w-2 h-2 rounded-full bg-gradient-to-b from-palace-red to-palace-red-dark"
+                                    animate={{ 
+                                      opacity: [0.4, 1, 0.4],
+                                      y: [0, -3, 0],
+                                      scale: [0.9, 1.1, 0.9]
+                                    }}
+                                    transition={{ 
+                                      duration: 1.2, 
+                                      repeat: Infinity, 
+                                      delay: i * 0.25,
+                                      ease: [0.22, 1, 0.36, 1]
+                                    }}
+                                  />
+                                ))}
+                              </div>
+                              <span className="text-gray-400 text-sm font-sans-text ml-2">
+                                {currentCharacter?.name}正在思考
+                              </span>
                             </div>
                           </div>
                         </motion.div>
@@ -287,7 +363,7 @@ export default function ChatPage() {
                       <div ref={chatEndRef} />
                     </div>
 
-                    <div className="p-4 border-t border-gold/20 bg-white/[0.05]">
+                    <div className="p-4 border-t border-gold/20">
                       <div className="flex space-x-3">
                         <div className="flex-1">
                           <input
@@ -296,7 +372,7 @@ export default function ChatPage() {
                             onChange={(e) => setInputValue(e.target.value)}
                             onKeyPress={handleKeyPress}
                             placeholder="输入您想说的话..."
-                            className="w-full bg-white/[0.1] rounded-lg px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none font-song border border-gold/30"
+                            className="w-full bg-white/[0.1] rounded-lg px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none font-sans-text border border-gold/30"
                           />
                         </div>
                         <motion.button
@@ -318,15 +394,15 @@ export default function ChatPage() {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="card-traditional rounded-lg p-4"
+                  className="glass-card-gold p-4"
                 >
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-lg bg-gold/20 flex items-center justify-center text-gold">
                       <Lightbulb className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-gold font-kai font-bold text-sm mb-1">{currentCharacter.name}</p>
-                      <p className="text-rice-white/70 font-song text-xs leading-relaxed">
+                      <p className="text-gold font-serif-title text-sm mb-1">{currentCharacter.name}</p>
+                      <p className="text-rice-white/70 font-sans-text text-xs leading-relaxed">
                         {currentCharacter.description}
                       </p>
                     </div>
@@ -337,6 +413,6 @@ export default function ChatPage() {
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </motion.div>
   );
 }
