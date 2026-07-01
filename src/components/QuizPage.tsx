@@ -310,7 +310,7 @@ export default function QuizPage() {
   }
 
   return (
-    <div className="min-h-screen relative pt-24 pb-20 px-6 bg-gradient-palace">
+    <div className="min-h-screen relative pt-20 pb-12 px-6 bg-gradient-palace">
       <div className="bg-cloud-texture" />
       <div className="bg-gold-glow" />
       
@@ -318,7 +318,7 @@ export default function QuizPage() {
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12 section-gradient py-12"
+          className="text-center mb-8 section-gradient py-8"
         >
           <div className="inline-flex items-center gap-3 mb-4">
             <Scroll className="w-8 h-8 text-gold" />
@@ -357,21 +357,21 @@ export default function QuizPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="scroll-card mt-6"
+          className="scroll-card mt-4"
         >
-          <div className="p-6 md:p-8">
-            <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-gold/30 to-transparent flex items-center justify-center">
-              <div className="w-16 h-2 bg-gold/50 rounded-full" />
+          <div className="p-5 md:p-6">
+            <div className="absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-gold/30 to-transparent flex items-center justify-center">
+              <div className="w-12 h-1.5 bg-gold/50 rounded-full" />
             </div>
-            <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-gold/30 to-transparent flex items-center justify-center">
-              <div className="w-16 h-2 bg-gold/50 rounded-full" />
+            <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-gold/30 to-transparent flex items-center justify-center">
+              <div className="w-12 h-1.5 bg-gold/50 rounded-full" />
             </div>
 
-            <h3 className="text-xl md:text-2xl font-serif-title text-palace-red mb-6 text-center pt-4">
+            <h3 className="text-lg md:text-xl font-serif-title text-palace-red mb-5 text-center pt-3">
               {currentQuestion.question}
             </h3>
             
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {currentQuestion.options.map((option, index) => (
                 <motion.button
                   key={index}
@@ -379,14 +379,14 @@ export default function QuizPage() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
                   onClick={() => handleSelectAnswer(index)}
-                  className={`w-full p-4 rounded-xl text-left transition-all duration-300 ${
+                  className={`w-full p-3.5 rounded-xl text-left transition-all duration-300 ${
                     quizState.selectedAnswer === index
                       ? 'bg-palace-red/20 border-2 border-palace-red/50'
                       : 'bg-white/[0.1] border border-transparent hover:border-gold/30'
                   }`}
                 >
                   <div className="flex items-center">
-                    <span className={`w-8 h-8 rounded-lg flex items-center justify-center mr-4 font-serif-title text-sm ${
+                    <span className={`w-7 h-7 rounded-lg flex items-center justify-center mr-3 font-serif-title text-sm ${
                       quizState.selectedAnswer === index
                         ? 'bg-palace-red text-white'
                         : 'bg-gold/20 text-palace-red'
@@ -411,7 +411,7 @@ export default function QuizPage() {
           transition={{ delay: 0.3 }}
           onClick={handleNext}
           disabled={quizState.selectedAnswer === null}
-          className="w-full mt-6 btn-gradient-red-gold text-rice-white font-kai font-bold py-4 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full mt-4 btn-gradient-red-gold text-rice-white font-kai font-bold py-3.5 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >

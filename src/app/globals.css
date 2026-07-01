@@ -522,7 +522,7 @@ body::after {
     padding: 24px;
     line-height: 1.8;
     font-family: 'Noto Serif SC', serif;
-    min-height: 300px;
+    min-height: auto;
   }
 
   .typing-cursor::after {
